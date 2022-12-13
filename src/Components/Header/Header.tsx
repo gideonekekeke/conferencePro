@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import logo from "../assets/logo1.png";
 import { AiOutlineSearch } from "react-icons/ai";
+import { Link } from "react-router-dom";
 
 const Header = () => {
 	return (
@@ -14,7 +15,9 @@ const Header = () => {
 				<Search>
 					<AiOutlineSearch />
 				</Search>
-				<Button>Upload Books</Button>
+				<Link to='/upload'>
+					<Button>Upload Books</Button>
+				</Link>
 			</Hold>
 		</Container>
 	);

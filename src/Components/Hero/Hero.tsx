@@ -137,7 +137,7 @@ const Container = styled.div`
 
 	::before {
 		content: "";
-		background-color: rgba(0, 0, 0, 0.86);
+		background-color: rgba(0, 0, 0, 0.83);
 		position: absolute;
 		height: 100%;
 		width: 100%;
