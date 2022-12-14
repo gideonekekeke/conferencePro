@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import GlobalButton from "./GlobalButton";
 import { AiOutlineSearch } from "react-icons/ai";
+import axios from "axios";
 const Hero = () => {
 	return (
 		<Container>

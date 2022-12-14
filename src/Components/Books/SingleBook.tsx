@@ -1,33 +1,50 @@
 import React from "react";
 import styled from "styled-components";
 import pic from "../assets/2.webp";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 
+interface MyData {
+	_id: string;
+	ISBN: string;
+	author: string;
+	authorImage: string;
+	coverImage: string;
+	category: string;
+	summary: string;
+	title: string;
+	views: string[];
+}
 const SingleBook = () => {
+	const [singleData, setSingleData] = React.useState<MyData>();
+
+	const { id } = useParams();
+	console.log(id);
+
+	const fetchSingleBook = async () => {
+		await axios.get(`http://localhost:5000/server/getone/${id}`).then((res) => {
+			console.log(res);
+
+			setSingleData(res.data.data);
+		});
+	};
+
+	React.useEffect(() => {
+		fetchSingleBook();
+	}, []);
+
 	return (
 		<Container>
 			<Wrapper>
 				<First>
 					<Hold>
-						<AuthorImage>G</AuthorImage>
-						<AuthName>Gideon ekeke </AuthName>
+						<AuthorImage>{singleData?.authorImage}</AuthorImage>
+						<AuthName>{singleData?.author} </AuthName>
 					</Hold>
 				</First>
-				<MainImage src={pic} />
-				<h2>HELLO WORLD</h2>
-				<Desc>
-					Lorem ipsum, dolor sit amet consectetur adipisicing elit. Minima eius
-					doloremque nisi consequuntur expedita quasi. Debitis animi totam eum
-					amet maiores autem blanditiis quaerat cumque dolor magnam? Dolorem
-					officia laborum minima fugit error, eaque tempora ducimus!
-					Reprehenderit, odio aspernatur vitae mollitia error, maiores facere
-					illum nesciunt minus ipsam, quia deserunt incidunt ipsa aliquid
-					recusandae animi pariatur delectus esse quod autem iusto! Aperiam
-					sapiente est architecto amet, nobis totam unde impedit ducimus commodi
-					earum numquam possimus. Consequatur molestias ducimus exercitationem
-					praesentium veritatis soluta facilis iste esse distinctio accusamus,
-					ab corporis vitae architecto eos ipsa facere ipsam rerum aliquid? Vel,
-					animi beatae?
-				</Desc>
+				<MainImage src={singleData?.coverImage} />
+				<h2>{singleData?.title}</h2>
+				<Desc>{singleData?.summary}</Desc>
 			</Wrapper>
 		</Container>
 	);

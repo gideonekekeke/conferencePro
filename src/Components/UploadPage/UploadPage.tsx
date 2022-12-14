@@ -1,32 +1,97 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { BsImageFill } from "react-icons/bs";
+import axios from "axios";
 const UploadPage = () => {
+	const [coverImage, setCoverImage] = useState("");
+	const [title, setTitle] = useState("");
+	const [preview, setPreview] = useState("");
+	const [summary, setSummary] = useState("");
+	const [author, setAuthor] = useState("");
+	const [category, setCategory] = useState("");
+
+	const handleImage = (e: any) => {
+		const file = e.target.files![0];
+		console.log(file);
+		const previewUrl = URL.createObjectURL(file);
+
+		setCoverImage(file);
+		setPreview(previewUrl);
+		console.log(preview);
+	};
+
+	const uploadData = async () => {
+		await axios
+			.post("http://localhost:5000/server/newBook", {
+				title,
+				coverImage,
+				summary,
+				category,
+				author,
+			})
+			.then((res) => {
+				alert("upload successfull");
+				console.log(res);
+			});
+	};
+
 	return (
 		<Container>
 			<Wrapper>
 				<Card>
-					<Circle>
+					{/* <Circle>
 						<BsImageFill />
 						<span>upload file</span>
+					</Circle> */}
+
+					<Circle>
+						<Img src={preview} />
 					</Circle>
 
-					<Input id='pix' type='file' />
+					<Input onChange={handleImage} id='pix' type='file' />
 					<Button htmlFor='pix'>Upload Cover Image</Button>
 
-					<Inp placeholder='Enter Title' />
-					<TexArea placeholder='Summary...' />
-					<Inp placeholder='Enter Author name' />
-					<Select>
-						<option>Comedy</option>
-						<option>Fiction</option>
-						<option>Poet</option>
-						<option>Romance</option>
-						<option>Legends</option>
-						<option>Others</option>
+					<Inp
+						onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+							setTitle(e.target.value);
+						}}
+						placeholder='Enter Title'
+					/>
+					<TexArea
+						onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+							setSummary(e.target.value);
+						}}
+						placeholder='Summary...'
+					/>
+					<Inp
+						onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+							setAuthor(e.target.value);
+						}}
+						placeholder='Enter Author name'
+					/>
+					<Select
+						onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+							setCategory(e.target.value);
+						}}>
+						<option>select a category</option>
+						<option value='comedy'>Comedy</option>
+						<option value='music'>Music</option>
+						<option value='romance'>Romance</option>
 					</Select>
 
-					<Button2>Submit</Button2>
+					{title !== "" &&
+					coverImage !== "" &&
+					summary !== "" &&
+					author !== "" &&
+					category !== "" ? (
+						<Button2 onClick={uploadData} cp='pointer' bg='black'>
+							Submit
+						</Button2>
+					) : (
+						<Button2 cp='not-allowed' bg='silver'>
+							Submit
+						</Button2>
+					)}
 				</Card>
 			</Wrapper>
 		</Container>
@@ -35,17 +100,23 @@ const UploadPage = () => {
 
 export default UploadPage;
 
-const Button2 = styled.button`
+const Img = styled.img`
+	height: 100%;
+	width: 100%;
+	object-fit: cover;
+`;
+
+const Button2 = styled.button<{ bg: string; cp: string }>`
 	height: 40px;
 	width: 150px;
-	background-color: silver;
+	background-color: ${(props) => props.bg};
 
 	color: white;
 	border: none;
 	outline: none;
 	border-radius: 5px;
 	transition: all 350ms;
-	cursor: not-allowed;
+	cursor: ${(props) => props.cp};
 	margin-top: 10px;
 
 	:hover {

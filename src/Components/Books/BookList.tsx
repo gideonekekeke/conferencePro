@@ -1,57 +1,118 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import pic from "../assets/2.webp";
 import { AiOutlineEye } from "react-icons/ai";
-// import axios from 'axios'
-import data from "../Data.json";
+import axios from "axios";
 import { Link } from "react-router-dom";
 
+interface MyData {
+	_id: string;
+	ISBN: string;
+	author: string;
+	authorImage: string;
+	coverImage: string;
+	category: string;
+	summary: string;
+	title: string;
+	views: string[];
+}
+
 const BookList = () => {
+	const [bookData, setBookData] = useState<MyData[]>([]);
+
+	const [ipState, setIpState] = useState("");
+
+	//get ip address from all users
+	const getIpAddress = async () => {
+		await axios
+			.get(
+				"https://geolocation-db.com/json/2d7a1090-a7e0-11ec-bb96-d99740183a81",
+			)
+			.then((res) => {
+				console.log("listening", res.data.IPv4);
+
+				setIpState(res.data.IPv4);
+			});
+	};
+
+	// get all the books from our database
+	const fetch = async () => {
+		await axios.get("http://localhost:5000/server/getall").then((res) => {
+			setBookData(res.data.data);
+		});
+	};
+
+	//updating our views, by pushing all the ip in the views array
+	const UpdateViews = async (id: string) => {
+		await axios
+			.patch(`http://localhost:5000/server/views/${id}`, {
+				ip: ipState,
+			})
+			.then((res) => {
+				console.log(res);
+			});
+	};
+
+	React.useEffect(() => {
+		fetch();
+		getIpAddress();
+	}, []);
+
 	return (
 		<Container>
-			{data.map((props) => (
-				<Card key={props.id}>
-					<Link to={`/books/${props.id}/details`}>
-						<ImageHolder>
-							<Image src={pic} />
-							<Cont>
-								<Button>{props.title}</Button>
+			{bookData.map(
+				({ _id, title, category, coverImage, author, authorImage, views }) => (
+					<Card
+						onClick={() => {
+							if (views.includes(ipState)) {
+								alert("you alerady viewed this");
+							} else {
+								UpdateViews(_id);
+							}
+						}}
+						key={_id}>
+						<Link to={`/books/${_id}/details`}>
+							<ImageHolder>
+								<Image src={coverImage} />
+								<Cont>
+									<Button>{category}</Button>
 
-								<TitleHold>
-									<Title>Life is a Yam</Title>
-								</TitleHold>
-							</Cont>
-						</ImageHolder>
-					</Link>
+									<TitleHold>
+										<Title>{title}</Title>
+									</TitleHold>
+								</Cont>
+							</ImageHolder>
+						</Link>
 
-					<DownPart>
-						<Hold>
-							<AuthorImage>G</AuthorImage>
-							<AuthName>Gideon ekeke</AuthName>
-						</Hold>
-						<ViewIcon>
-							<AiOutlineEye />
-							<span> 19k</span>
-						</ViewIcon>
-					</DownPart>
-
-					<HoverCard>
-						<First>
+						<DownPart>
 							<Hold>
-								<AuthorImage>G</AuthorImage>
-								<AuthName>Gideon ekeke</AuthName>
+								<AuthorImage>{authorImage}</AuthorImage>
+								<AuthName>{author}</AuthName>
 							</Hold>
+							<ViewIcon>
+								<AiOutlineEye />
+								<span> {views.length}</span>
+							</ViewIcon>
+						</DownPart>
 
-							<But>+ View</But>
-						</First>
-						<Second>
-							<MainImage src={pic} />
-							<MainImage src={pic} />
-							<MainImage src={pic} />
-						</Second>
-					</HoverCard>
-				</Card>
-			))}
+						<HoverCard>
+							<First>
+								<Hold>
+									<AuthorImage>{authorImage}</AuthorImage>
+									<AuthName>{author}</AuthName>
+								</Hold>
+
+								<But>+ View</But>
+							</First>
+							<Second>
+								<MainImage src={pic} />
+								<MainImage src={pic} />
+								<MainImage src={pic} />
+							</Second>
+						</HoverCard>
+					</Card>
+				),
+			)}
 		</Container>
 	);
 };
