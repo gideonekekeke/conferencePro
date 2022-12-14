@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { BsImageFill } from "react-icons/bs";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 const UploadPage = () => {
+	const navigate = useNavigate();
 	const [coverImage, setCoverImage] = useState("");
 	const [title, setTitle] = useState("");
 	const [preview, setPreview] = useState("");
@@ -21,17 +23,19 @@ const UploadPage = () => {
 	};
 
 	const uploadData = async () => {
+		const formData = new FormData();
+
+		formData.append("title", title);
+		formData.append("coverImage", coverImage);
+		formData.append("summary", summary);
+		formData.append("category", category);
+		formData.append("author", author);
+
 		await axios
-			.post("http://localhost:5000/server/newBook", {
-				title,
-				coverImage,
-				summary,
-				category,
-				author,
-			})
+			.post("http://localhost:5000/server/newBook", formData)
 			.then((res) => {
 				alert("upload successfull");
-				console.log(res);
+				navigate("/");
 			});
 	};
 
