@@ -3,7 +3,35 @@ import styled from "styled-components";
 import GlobalButton from "./GlobalButton";
 import { AiOutlineSearch } from "react-icons/ai";
 import axios from "axios";
-const Hero = () => {
+
+interface MyData {
+	_id: string;
+	author: string;
+	authorImage: string;
+	category: string;
+	coverImage: string;
+	title: string;
+	views: string[];
+}
+interface Iprops {
+	searchData: MyData[];
+	setSearchData: React.Dispatch<React.SetStateAction<MyData[]>>;
+}
+
+const Hero: React.FC<Iprops> = ({ searchData, setSearchData }) => {
+	const [search, setSearch] = React.useState("");
+
+	const SearchResult = async (e: any) => {
+		if (e.key === "Enter") {
+			await axios
+				.get(`http://localhost:5000/server/search?author=${search}`)
+				.then((res) => {
+					console.log(res);
+					setSearchData(res.data.data);
+				});
+		}
+	};
+
 	return (
 		<Container>
 			<Video
@@ -40,7 +68,13 @@ const Hero = () => {
 					<Icon>
 						<AiOutlineSearch />
 					</Icon>
-					<Input placeholder='Enter your Search world' />
+					<Input
+						onKeyPress={SearchResult}
+						onChange={(e) => {
+							setSearch(e.target.value);
+						}}
+						placeholder='Search by author name'
+					/>
 				</InputHold>
 			</Content>
 		</Container>

@@ -6,31 +6,26 @@ import axios from "axios";
 
 interface MyData {
 	_id: string;
-	ISBN: string;
 	author: string;
 	authorImage: string;
-	coverImage: string;
 	category: string;
-	summary: string;
+	coverImage: string;
 	title: string;
 	views: string[];
+	summary: string;
 }
 const SingleBook = () => {
 	const [singleData, setSingleData] = React.useState<MyData>();
-
 	const { id } = useParams();
-	console.log(id);
 
-	const fetchSingleBook = async () => {
+	const getDetails = async () => {
 		await axios.get(`http://localhost:5000/server/getone/${id}`).then((res) => {
-			console.log(res);
-
 			setSingleData(res.data.data);
 		});
 	};
 
 	React.useEffect(() => {
-		fetchSingleBook();
+		getDetails();
 	}, []);
 
 	return (
@@ -42,7 +37,13 @@ const SingleBook = () => {
 						<AuthName>{singleData?.author} </AuthName>
 					</Hold>
 				</First>
-				<MainImage src={singleData?.coverImage} />
+
+				<MainImage cv={singleData?.coverImage}>
+					<Holder>
+						<MainImage2 src={singleData?.coverImage} />
+					</Holder>
+				</MainImage>
+
 				<h2>{singleData?.title}</h2>
 				<Desc>{singleData?.summary}</Desc>
 			</Wrapper>
@@ -51,6 +52,28 @@ const SingleBook = () => {
 };
 
 export default SingleBook;
+
+const Holder = styled.div`
+	height: 100%;
+	width: 100%;
+	border-radius: 5px;
+	/* background-color: #e7e6e6; */
+
+	/* object-fit: contain; */
+
+	backdrop-filter: blur(10px);
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+`;
+const MainImage2 = styled.img`
+	height: 350px;
+	width: 400px;
+	object-fit: cover;
+	/* backdrop-filter: blur(5px); */
+	/* filter: blur(3px); */
+`;
 
 const Wrapper = styled.div`
 	width: 80%;
@@ -91,18 +114,24 @@ const Hold = styled.div`
 	cursor: pointer;
 	width: 100%;
 `;
-const MainImage = styled.img`
-	height: 500px;
-	width: 100%;
-	border-radius: 5px;
-	background-color: #e7e6e6;
-	margin-right: 5px;
-	object-fit: contain;
-	margin-top: 30px;
+const MainImage = styled.div<{ cv: any }>`
+	height: 400px;
+	width: 700px;
+	/* position: absolute; */
+	background-image: url(${(props) => props.cv});
+
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 `;
 const First = styled.div`
 	display: flex;
 	margin-top: 50px;
+	/* position: absolute; */
+	/* top: 0; */
 `;
 const AuthImage = styled.div``;
 const Name = styled.div``;

@@ -2,79 +2,78 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { BsImageFill } from "react-icons/bs";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import Loading from "./Loading";
+
 const UploadPage = () => {
-	const navigate = useNavigate();
-	const [coverImage, setCoverImage] = useState("");
-	const [title, setTitle] = useState("");
-	const [preview, setPreview] = useState("");
-	const [summary, setSummary] = useState("");
-	const [author, setAuthor] = useState("");
-	const [category, setCategory] = useState("");
+	const [title, setTitle] = React.useState("");
+	const [summary, setSummary] = React.useState("");
+	const [author, setAuthor] = React.useState("");
+	const [category, setCategory] = React.useState("");
+	const [image, setImage] = React.useState("");
+	const [previewImage, setPreviewImage] = React.useState("");
+	const [show, setShow] = React.useState(false);
 
-	const handleImage = (e: any) => {
-		const file = e.target.files![0];
-		console.log(file);
-		const previewUrl = URL.createObjectURL(file);
-
-		setCoverImage(file);
-		setPreview(previewUrl);
-		console.log(preview);
+	const ImageOnchange = (e: any) => {
+		const file = e.target.files[0];
+		setImage(file);
+		const url = URL.createObjectURL(file);
+		setPreviewImage(url);
+		console.log(url);
 	};
 
-	const uploadData = async () => {
-		const formData = new FormData();
+	const UploadEbook = async () => {
+		setShow(true);
+		const formdata = new FormData();
 
-		formData.append("title", title);
-		formData.append("coverImage", coverImage);
-		formData.append("summary", summary);
-		formData.append("category", category);
-		formData.append("author", author);
+		formdata.append("title", title);
+		formdata.append("summary", summary);
+		formdata.append("category", category);
+		formdata.append("author", author);
+		formdata.append("coverImage", image);
 
 		await axios
-			.post("http://localhost:5000/server/newBook", formData)
+			.post("http://localhost:5000/server/newBook", formdata)
 			.then((res) => {
-				alert("upload successfull");
-				navigate("/");
+				console.log(res);
+				setShow(false);
+			})
+			.catch(() => {
+				setShow(false);
 			});
 	};
 
 	return (
 		<Container>
+			{show ? <Loading /> : null}
 			<Wrapper>
 				<Card>
-					{/* <Circle>
-						<BsImageFill />
-						<span>upload file</span>
-					</Circle> */}
-
 					<Circle>
-						<Img src={preview} />
+						<Img src={previewImage} />
 					</Circle>
 
-					<Input onChange={handleImage} id='pix' type='file' />
+					<Input onChange={ImageOnchange} id='pix' type='file' />
 					<Button htmlFor='pix'>Upload Cover Image</Button>
 
 					<Inp
-						onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+						onChange={(e) => {
 							setTitle(e.target.value);
 						}}
 						placeholder='Enter Title'
 					/>
 					<TexArea
-						onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+						onChange={(e) => {
 							setSummary(e.target.value);
 						}}
 						placeholder='Summary...'
 					/>
 					<Inp
-						onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+						onChange={(e) => {
 							setAuthor(e.target.value);
 						}}
 						placeholder='Enter Author name'
 					/>
 					<Select
-						onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+						onChange={(e) => {
 							setCategory(e.target.value);
 						}}>
 						<option>select a category</option>
@@ -84,11 +83,11 @@ const UploadPage = () => {
 					</Select>
 
 					{title !== "" &&
-					coverImage !== "" &&
-					summary !== "" &&
+					category !== "" &&
 					author !== "" &&
-					category !== "" ? (
-						<Button2 onClick={uploadData} cp='pointer' bg='black'>
+					summary !== "" &&
+					image !== "" ? (
+						<Button2 onClick={UploadEbook} cp='pointer' bg='black'>
 							Submit
 						</Button2>
 					) : (

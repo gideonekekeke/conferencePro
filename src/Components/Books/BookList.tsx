@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import pic from "../assets/2.webp";
 import { AiOutlineEye } from "react-icons/ai";
@@ -7,43 +7,52 @@ import { Link } from "react-router-dom";
 
 interface MyData {
 	_id: string;
-	ISBN: string;
 	author: string;
 	authorImage: string;
-	coverImage: string;
 	category: string;
-	summary: string;
+	coverImage: string;
 	title: string;
 	views: string[];
 }
 
-const BookList = () => {
+interface Iprops {
+	searchData: MyData[];
+	setSearchData: React.Dispatch<React.SetStateAction<MyData[]>>;
+}
+
+const BookList: React.FC<Iprops> = ({ searchData, setSearchData }) => {
 	const [bookData, setBookData] = useState<MyData[]>([]);
+	const [isLoading, setIsloading] = useState(true);
+	const [ipState, setIpstate] = useState("");
 
-	const [ipState, setIpState] = useState("");
-
-	//get ip address from all users
-	const getIpAddress = async () => {
+	const ReadData = async () => {
 		await axios
-			.get(
-				"https://geolocation-db.com/json/2d7a1090-a7e0-11ec-bb96-d99740183a81",
-			)
+			.get("http://localhost:5000/server/getall")
 			.then((res) => {
-				console.log("listening", res.data.IPv4);
+				setIsloading(false);
+				setBookData(res.data.data);
+			})
+			.catch((err) => {
+				console.log(err);
 
-				setIpState(res.data.IPv4);
+				return err;
 			});
 	};
 
-	// get all the books from our database
-	const fetch = async () => {
-		await axios.get("http://localhost:5000/server/getall").then((res) => {
-			setBookData(res.data.data);
-		});
+	const ReadIpAddress = async () => {
+		await axios
+			.get(
+				"https://geolocation-db.com/json/67273a00-5c4b-11ed-9204-d161c2da74ce",
+			)
+			.then((res) => {
+				setIpstate(res.data.IPv4);
+			})
+			.catch((err) => {
+				console.log(err);
+			});
 	};
 
-	//updating our views, by pushing all the ip in the views array
-	const UpdateViews = async (id: string) => {
+	const StoreViews = async (id: string) => {
 		await axios
 			.patch(`http://localhost:5000/server/views/${id}`, {
 				ip: ipState,
@@ -53,71 +62,135 @@ const BookList = () => {
 			});
 	};
 
-	React.useEffect(() => {
-		fetch();
-		getIpAddress();
+	useEffect(() => {
+		ReadIpAddress();
+		ReadData();
 	}, []);
 
 	return (
 		<Container>
-			{bookData.map(
-				({ _id, title, category, coverImage, author, authorImage, views }) => (
-					<Card
-						onClick={() => {
-							if (views.includes(ipState)) {
-								alert("you alerady viewed this");
-							} else {
-								UpdateViews(_id);
-							}
-						}}
-						key={_id}>
-						<Link to={`/books/${_id}/details`}>
-							<ImageHolder>
-								<Image src={coverImage} />
-								<Cont>
-									<Button>{category}</Button>
+			{isLoading ? <p>Loading...</p> : null}
 
-									<TitleHold>
-										<Title>{title}</Title>
-									</TitleHold>
-								</Cont>
-							</ImageHolder>
+			{searchData?.length >= 1 ? (
+				<>
+					{searchData?.map((props) => (
+						<Link
+							style={{ textDecoration: "none" }}
+							to={`/books/${props._id}/details`}>
+							<Card key={props._id}>
+								<ImageHolder
+									onClick={() => {
+										if (props.views.includes(ipState)) {
+											return null;
+										} else {
+											StoreViews(props._id);
+										}
+									}}>
+									<Image src={props.coverImage} />
+									<Cont>
+										<Button>{props.category}</Button>
+
+										<TitleHold>
+											<Title>{props.title}</Title>
+										</TitleHold>
+									</Cont>
+								</ImageHolder>
+
+								<DownPart>
+									<Hold>
+										<AuthorImage>{props.authorImage}</AuthorImage>
+										<AuthName>{props.author}</AuthName>
+									</Hold>
+									<ViewIcon>
+										<AiOutlineEye />
+										<span> {props.views.length}</span>
+									</ViewIcon>
+
+									<HoverCard>
+										<First>
+											<Hold>
+												<AuthorImage>G</AuthorImage>
+												<AuthName>Gideon ekeke</AuthName>
+											</Hold>
+
+											<But>+ View</But>
+										</First>
+										<Second>
+											<MainImage src={pic} />
+											<MainImage src={pic} />
+											<MainImage src={pic} />
+										</Second>
+									</HoverCard>
+								</DownPart>
+							</Card>
 						</Link>
+					))}
+				</>
+			) : (
+				<>
+					{bookData?.map((props) => (
+						<Link
+							style={{ textDecoration: "none" }}
+							to={`/books/${props._id}/details`}>
+							<Card key={props._id}>
+								<ImageHolder
+									onClick={() => {
+										if (props.views.includes(ipState)) {
+											return null;
+										} else {
+											StoreViews(props._id);
+										}
+									}}>
+									<Image src={props.coverImage} />
+									<Cont>
+										<Button>{props.category}</Button>
 
-						<DownPart>
-							<Hold>
-								<AuthorImage>{authorImage}</AuthorImage>
-								<AuthName>{author}</AuthName>
-							</Hold>
-							<ViewIcon>
-								<AiOutlineEye />
-								<span> {views.length}</span>
-							</ViewIcon>
-						</DownPart>
+										<TitleHold>
+											<Title>{props.title}</Title>
+										</TitleHold>
+									</Cont>
+								</ImageHolder>
 
-						<HoverCard>
-							<First>
-								<Hold>
-									<AuthorImage>{authorImage}</AuthorImage>
-									<AuthName>{author}</AuthName>
-								</Hold>
+								<DownPart>
+									<Hold>
+										<AuthorImage>{props.authorImage}</AuthorImage>
+										<AuthName>{props.author}</AuthName>
+									</Hold>
+									<ViewIcon>
+										<AiOutlineEye />
+										<span> {props.views.length}</span>
+									</ViewIcon>
 
-								<But>+ View</But>
-							</First>
-							<Second>
-								<MainImage src={pic} />
-								<MainImage src={pic} />
-								<MainImage src={pic} />
-							</Second>
-						</HoverCard>
-					</Card>
-				),
+									<HoverCard>
+										<First>
+											<Hold>
+												<AuthorImage>G</AuthorImage>
+												<AuthName>Gideon ekeke</AuthName>
+											</Hold>
+
+											<But>+ View</But>
+										</First>
+										<Second>
+											<MainImage src={pic} />
+											<MainImage src={pic} />
+											<MainImage src={pic} />
+										</Second>
+									</HoverCard>
+								</DownPart>
+							</Card>
+						</Link>
+					))}
+				</>
 			)}
 		</Container>
 	);
 };
 
 export default BookList;
+
+const Mea = styled.div`
+	/* display: none; */
+`;
 
 const HoverCard = styled.div`
 	height: 150px;
@@ -126,14 +199,15 @@ const HoverCard = styled.div`
 	position: absolute;
 	display: flex;
 	flex-direction: column;
-	top: 10px;
+	top: 20px;
 	border-radius: 5px;
 	background-color: white;
 	box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
 	padding: 20px;
-	z-index: 1;
+	z-index: 10;
 
 	display: none;
+
 	/* display: block; */
 `;
 
@@ -188,7 +262,7 @@ const Container = styled.div`
 `;
 const Card = styled.div`
 	width: 300px;
-	position: relative;
+	/* position: relative; */
 
 	margin: 10px;
 `;
@@ -213,7 +287,7 @@ const TitleHold = styled.div`
 		rgba(65, 73, 73, 1) 0%,
 		rgba(253, 187, 45, 0) 100%
 	);
-	position: relative;
+	/* position: relative; */
 
 	:hover {
 		opacity: 1;
@@ -233,10 +307,26 @@ const DownPart = styled.div`
 	align-items: center;
 	justify-content: space-between;
 	margin-top: 10px;
+	/* position: relative; */
+	/* display: inline-block; */
 
-	&:hover ~ ${HoverCard} {
+	/* &:hover ~ ${HoverCard} {
 		display: flex;
+		position: absolute;
+		height: 500px;
+		width: 300px;
+		background: black;
+	} */
+	::after ~ ${Mea} {
+		content: "dgjfjgdsdgaz";
 	}
+	/* &:hover ~ ${HoverCard} {
+		display: inline-block;
+		position: absolute;
+		height: 500px;
+		width: 300px;
+		background: black;
+	} */
 `;
 const Cont = styled.div`
 	position: absolute;
@@ -272,6 +362,7 @@ const AuthorImage = styled.div`
 `;
 const AuthName = styled.div`
 	font-weight: bold;
+	color: black;
 `;
 const ViewIcon = styled.div`
 	display: flex;
